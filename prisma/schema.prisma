@@ -1,0 +1,86 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+  relationMode = "prisma"
+}
+
+model User {
+    id        String  @id @map("_id")
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+    gigs      UserToGig[]
+    festivals UserToFestival[]
+}
+
+model Gig {
+    id        String  @id @default(cuid()) @map("_id")
+    title     String
+    description String
+    artistId  String
+    usersId   String[]
+    date      DateTime
+    price     Float
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+    artist    Artist  @relation(fields: [artistId], references: [id])
+    users     UserToGig[]
+}
+
+model Festival {
+    id        String  @id @default(cuid()) @map("_id")
+    name      String
+    location  String
+    date      DateTime
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+    artists   ArtistToFestival[]
+    users     UserToFestival[]
+}
+
+model Artist {
+    id        String  @id @default(cuid()) @map("_id")
+    name      String
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+    gigs      Gig[]
+    ArtistToFestival ArtistToFestival[]
+}
+
+// Many to Many relations
+
+model ArtistToFestival {
+    id        String  @id @default(cuid()) @map("_id")
+    artistId  String
+    festivalId String
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+    artist    Artist  @relation(fields: [artistId], references: [id])
+    festival  Festival @relation(fields: [festivalId], references: [id])
+}
+
+model UserToGig {
+    id        String  @id @default(cuid()) @map("_id")
+    userId    String
+    gigId     String
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+    user      User  @relation(fields: [userId], references: [id])
+    gig       Gig   @relation(fields: [gigId], references: [id])
+}
+
+model UserToFestival {
+    id        String  @id @default(cuid()) @map("_id")
+    userId    String
+    festivalId String
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+    user      User  @relation(fields: [userId], references: [id])
+    festival  Festival @relation(fields: [festivalId], references: [id])
+}
