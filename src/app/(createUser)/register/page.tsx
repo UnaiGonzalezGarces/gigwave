@@ -1,29 +1,32 @@
-import { PrismaClient } from '@prisma/client';
 import { getUserId } from '@/utils/GetUserId';
+import { db } from '@/lib/db';
+import { NextResponse } from 'next/server';
 import { redirect } from 'next/navigation';
 
-const prisma = new PrismaClient();
-
 export async function createUser() {
-  const userId = await getUserId();
+  try {
+    const userId = await getUserId();
 
-  if (!userId) {
-    return null;
+    if (!userId) {
+      return new NextResponse('Unauthorized', { status: 401 });
+    }
+
+    const user = await db.user.create({
+      data: {
+        id: userId,
+      },
+    });
+
+    return NextResponse.json(user);
+  } catch (error) {
+    console.error(error.stack);
+    return new NextResponse('Internal Error', { status: 500 });
   }
-
-  const user = await prisma.user.create({
-    data: {
-      id: userId,
-    },
-  });
-
-  return user;
 }
 
 const Register = () => {
   createUser();
-  //   redirect('/feed');
-  return <h1>Register</h1>;
+  redirect('/feed');
 };
 
 export default Register;
